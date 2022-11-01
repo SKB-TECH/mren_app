@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema({
         min: 3,
         max: 25
     },
-
     email: {
         type: String,
         required: true,
@@ -34,13 +33,29 @@ const userSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-    follewins: {
+    follewing: {
         type: Array,
         default: []
     },
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    desc: {
+        type: String,
+        max: 250
+    },
+    city: {
+        type: String,
+        max: 50
+    },
+    from: {
+        type: String,
+        max: 50
+    },
+    relationShip: {
+        type: Number,
+        enum: [1, 2, 3]
     }
 }, {
     timestamps: true
