@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 exports.database = () => {
     try {
-        mongoose.connect(process.env.MONGODB, {
+        mongoose.connect(process.env.DB, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         }, () => {
