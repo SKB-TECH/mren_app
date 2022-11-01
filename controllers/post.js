@@ -1,5 +1,5 @@
 const postModel = require('../models/Post')
-
+const userModel = require("../models/User")
 // new post
 exports.new_post = async (req, res) => {
     const newPost = new postModel(req.body)
@@ -45,15 +45,43 @@ exports.delete_post = async (req, res) => {
 
 // likes post
 exports.like_post = async (req, res) => {
-
+    try {
+        const post = await postModel.findById({ _id: req.params.id })
+        if (!post.likes.includes(req.body.userId)) {
+            await post.updateOne({ $push: { likes: req.body.userId } })
+            res.status(200).json("Your like has been successfuly")
+        }
+        else {
+            await post.updateOne({ $pull: { likes: req.body.userId } })
+            res.status(200).json("Your post has been disliked")
+        }
+    } catch (error) {
+        res.status(500).json(error)
+    }
 }
 
 // getOne post
-exports.getOnepost = async (req, res) => {
-
+exports.getOne = async (req, res) => {
+    const post = await postModel.findById(req.params.id)
+    try {
+        res.status(200).json(post)
+    } catch (error) {
+        res.status(500).json(error)
+    }
 }
 
 // get time post
 exports.getTimeLinePost = async (req, res) => {
+    try {
+        const currentUser = await userModel.findById({ _id: req.body.userId })
+        const userPost = await postModel.findById({ userId: currentUser._id })
 
+        const friendPost = await Promise.all(
+            currentUser.follewing.map((friendId) => {
+                return postModel.find({ userId: friendId })
+            })
+        )
+    } catch (error) {
+        res.status(500).json(error)
+    }
 }
