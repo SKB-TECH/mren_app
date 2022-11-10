@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema({
     relationShip: {
         type: Number,
         enum: [1, 2, 3]
+    },
+    online: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

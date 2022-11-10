@@ -73,14 +73,16 @@ exports.getOne = async (req, res) => {
 // get time post
 exports.getTimeLinePost = async (req, res) => {
     try {
-        const currentUser = await userModel.findById({ _id: req.body.userId })
-        const userPost = await postModel.findById({ userId: currentUser._id })
+        const currentUser = await userModel.findById({ _id: req.params.userId })
+        const userPosts = await postModel.find({ userId: currentUser._id })
 
         const friendPost = await Promise.all(
             currentUser.follewing.map((friendId) => {
                 return postModel.find({ userId: friendId })
             })
+
         )
+        res.status(200).json(userPosts.concat(...friendPost))
     } catch (error) {
         res.status(500).json(error)
     }
