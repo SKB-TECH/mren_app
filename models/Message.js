@@ -8,8 +8,8 @@ const schemaMessage = new mongoose.Schema({
     message: {
         type: String,
     },
-    recId: {
-        type: String,
+    users: {
+        type: [],
         required: true
     },
 
