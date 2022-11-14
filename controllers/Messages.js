@@ -1,8 +1,6 @@
 const { Mongoose } = require('mongoose')
 const messageModel = require('../models/Message')
 
-
-
 exports.newMessage = async (req, res) => {
     const { recId, message } = req.body
     const userId = req.params.id
@@ -24,7 +22,6 @@ exports.newMessage = async (req, res) => {
 exports.readMessage = async (req, res) => {
     const recId = req.body.recId
     const userId = req.params.id
-
     try {
         const message = await messageModel.find({
             users: {

@@ -1,10 +1,11 @@
 const bcrypt = require('bcrypt')
+const userModel = require('../models/User')
 const User = require('../models/User')
+
 // singup
 exports.register = async (req, res) => {
     const passwordSalt = bcrypt.genSalt()
     try {
-
         // generated password salt
         const salt = await bcrypt.genSalt(10)
         const haltSalt = await bcrypt.hash(req.body.password, salt)
@@ -25,25 +26,36 @@ exports.register = async (req, res) => {
 
 // singin
 exports.login = async (req, res) => {
-    try {
-        // verification de l'adresse mail
-        const user = await User.findOne({ email: req.body.email })
-        !user && res.status(404).json("user or email adress not found")
+    const { email, password } = req.body
+    if (email && password) {
+        try {
+            // verification de l'adresse mail
+            const user = await User.findOne({ email })
+            !user && res.status(404).json("user or email adress not found")
 
-        // verification du mot de pass
-        const validPassword = await bcrypt.compare(req.body.password, user.password)
-        !validPassword && res.status(400).json("Wrong Password")
+            // verification du mot de pass
+            const validPassword = await bcrypt.compare(req.body.password, user.password)
+            !validPassword && res.status(400).json("Wrong Password")
 
-        res.status(200).json(user)
-    } catch (error) {
-        res.status(500).json(error)
+            const status = await userModel.findByIdAndUpdate(user._id,
+                { $addToSet: { online: true } },
+                { new: true, upsert: true }
+            )
+            res.status(200).json(status)
+
+        } catch (error) {
+            res.status(500).json(error)
+        }
+    }
+    else {
+        res.status(501).json({ message: "Email or Password is empty" })
     }
 }
 
 // getAllUsers
 exports.getUser = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id)
+        const user = await userModel.findById(req.params.id)
         const { password, updatedAt, ...other } = user._doc
 
         res.status(200).json(other)
@@ -52,6 +64,29 @@ exports.getUser = async (req, res) => {
     }
 }
 
+// tout les utilisateurs du systeme
+exports.getAllUser = async (req, res) => {
+    try {
+        const user = await User.find().select("-password")
+        // const { password, updatedAt, ...other } = user._doc
+        res.status(200).json(user)
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+// les utilisateurs connecter
+exports.getUsersOnline = async (req, res) => {
+    try {
+        const user = await User.find()
+        // const { password, updatedAt, ...other } = user._doc
+        res.status(200).json(user)
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
 // update
 exports.update_user = async (req, res) => {
     if (req.body.userId == req.params.id || req.body.isAdmin) {
