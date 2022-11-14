@@ -1,7 +1,16 @@
 const bcrypt = require('bcrypt')
 const userModel = require('../models/User')
 const User = require('../models/User')
+const jwt = require('jsonwebtoken')
 
+
+const maxAge = 1 * 24 * 60 * 60 * 1000
+
+const createToken = (id) => {
+    return jwt.sign({ id }, process.env.SECRETE_KEY, {
+        expiresIn: maxAge
+    })
+}
 // singup
 exports.register = async (req, res) => {
     const passwordSalt = bcrypt.genSalt()
@@ -14,11 +23,21 @@ exports.register = async (req, res) => {
         const newUser = await new User({
             username: req.body.username,
             email: req.body.email,
+            online: true,
             password: haltSalt
         })
 
         const user = await newUser.save()
-        res.status(200).send({ user })
+        if (user) {
+            const token = createToken(user._id)
+            res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
+
+            res.status(200).send({ user })
+        }
+        else {
+            res.status(403).json({ message: "Error to create account" })
+        }
+
     } catch (error) {
         console.log(error)
     }
@@ -27,30 +46,30 @@ exports.register = async (req, res) => {
 // singin
 exports.login = async (req, res) => {
     const { email, password } = req.body
-    if (email && password) {
-        try {
-            // verification de l'adresse mail
-            const user = await User.findOne({ email })
-            !user && res.status(404).json("user or email adress not found")
+    try {
+        const user = await User.findOne({ email })
+        if (user) {
+            const valide = await bcrypt.compare(password, user.password)
+            if (valide) {
 
-            // verification du mot de pass
-            const validPassword = await bcrypt.compare(req.body.password, user.password)
-            !validPassword && res.status(400).json("Wrong Password")
+                const token = createToken(user._id)
+                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
 
-            const status = await userModel.findByIdAndUpdate(user._id,
-                { $addToSet: { online: true } },
-                { new: true, upsert: true }
-            )
-            res.status(200).json(status)
-
-        } catch (error) {
-            res.status(500).json(error)
+                await User.findByIdAndUpdate(user._id, { $set: { online: true } })
+                res.status(200).json({ user })
+            }
+            else {
+                res.status(403).json({ message: "Password is not valid" })
+            }
         }
-    }
-    else {
-        res.status(501).json({ message: "Email or Password is empty" })
+        else {
+            res.status(403).json({ message: "Email adress is not valid" })
+        }
+    } catch (err) {
+        res.status(501).json({ err: err })
     }
 }
+
 
 // getAllUsers
 exports.getUser = async (req, res) => {
