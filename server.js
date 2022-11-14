@@ -31,19 +31,6 @@ app.use(cors({
 }))
 
 
-app.use(session({
-    name: "user_session",
-    resave: true,
-    saveUninitialized: true,
-    secret: process.env.SECRETE_KEY,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        secure: false
-    }
-}))
-
-
-
 // les routes
 app.use("/api/user", userRouter)
 app.use("/api/post", postRouter)
