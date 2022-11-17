@@ -3,9 +3,7 @@ const userModel = require('../models/User')
 const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 
-
 const maxAge = 1 * 24 * 60 * 60 * 1000
-
 const createToken = (id) => {
     return jwt.sign({ id }, process.env.SECRETE_KEY, {
         expiresIn: maxAge
@@ -13,33 +11,36 @@ const createToken = (id) => {
 }
 // singup
 exports.register = async (req, res) => {
-    const passwordSalt = bcrypt.genSalt()
     try {
-        // generated password salt
-        const salt = await bcrypt.genSalt(10)
-        const haltSalt = await bcrypt.hash(req.body.password, salt)
+        const utilisateur = await User.findOne({ email: req.body.email })
+        if (!utilisateur) {
+            // generated password salt
+            const salt = await bcrypt.genSalt(10)
+            const haltSalt = await bcrypt.hash(req.body.password, salt)
 
-        // created new user
-        const newUser = await new User({
-            username: req.body.username,
-            email: req.body.email,
-            online: true,
-            password: haltSalt
-        })
+            // created new user
+            const newUser = await new User({
+                username: req.body.username,
+                email: req.body.email,
+                online: true,
+                password: haltSalt
+            })
 
-        const user = await newUser.save()
-        if (user) {
-            const token = createToken(user._id)
-            res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
-
-            res.status(200).send({ user })
+            const user = await newUser.save()
+            if (user) {
+                const token = createToken(user._id)
+                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
+                res.status(200).send({ user })
+            }
+            else {
+                res.status(203).json("user is not created")
+            }
         }
         else {
-            res.status(403).json({ message: "Error to create account" })
+            res.status(204).json({ message: "User already exist" })
         }
-
     } catch (error) {
-        console.log(error)
+        res.status(500).json(error)
     }
 }
 
@@ -190,4 +191,10 @@ exports.unfollow = async (req, res) => {
     } else {
         res.status(403).json("you cant unfollow yourself")
     }
+}
+
+// deconnexion 
+exports.logout = (req, res) => {
+    res.cookie('jwt', '', { maxAge: 1 })
+    res.redirect('/')
 }

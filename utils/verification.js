@@ -1,14 +1,14 @@
 // cette fonction va permettre la verification de la Validite de token de l'utilisateur
 
 const jwt = require("jsonwebtoken");
-const userModel = require("../models/usermodel");
+const userModel = require("../models/User");
 
 
 //cette fonction va verifie si l'utilisateur possede un token valide\
 exports.checkUser = (req, res, next) => {
-    const tokens = req.cookies.jwt;
+    const tokens = req.cookie.jwt;
     if (tokens) {
-        jwt.verify(tokens, process.env.TOKEN, async (error, decode) => {
+        jwt.verify(tokens, process.env.SECRETE_KEY, async (error, decode) => {
             if (error) {
                 res.locals.user = null;
                 res.cookies("jwt", "", { maxAge: 1 });
@@ -30,7 +30,7 @@ exports.checkUser = (req, res, next) => {
 exports.requireAuth = (req, res, next) => {
     const token = req.cookies.jwt;
     if (token) {
-        jwt.verify(token, process.env.TOKEN, async (error, decode) => {
+        jwt.verify(token, process.env.SECRTE_KEY, async (error, decode) => {
             if (error) {
                 console.log("error");
             } else {
