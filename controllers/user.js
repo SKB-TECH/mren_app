@@ -14,10 +14,8 @@ exports.register = async (req, res) => {
     try {
         const utilisateur = await User.findOne({ email: req.body.email })
         if (!utilisateur) {
-            // generated password salt
             const salt = await bcrypt.genSalt(10)
             const haltSalt = await bcrypt.hash(req.body.password, salt)
-
             // created new user
             const newUser = await new User({
                 username: req.body.username,
@@ -29,8 +27,8 @@ exports.register = async (req, res) => {
             const user = await newUser.save()
             if (user) {
                 const token = createToken(user._id)
-                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
-                res.status(200).send({ user })
+                let tokens = ('jwt', token)
+                res.status(200).json({ user, tokens })
             }
             else {
                 res.status(203).json("user is not created")
@@ -52,12 +50,9 @@ exports.login = async (req, res) => {
         if (user) {
             const valide = await bcrypt.compare(password, user.password)
             if (valide) {
-
                 const token = createToken(user._id)
-                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge })
-
-                await User.findByIdAndUpdate(user._id, { $set: { online: true } })
-                res.status(200).json({ user })
+                let tokens = ('jwt', token)
+                res.status(200).json({ user, tokens })
             }
             else {
                 res.status(403).json({ message: "Password is not valid" })
@@ -71,35 +66,10 @@ exports.login = async (req, res) => {
     }
 }
 
-
-// getAllUsers
-exports.getUser = async (req, res) => {
-    try {
-        const user = await userModel.findById(req.params.id)
-        const { password, updatedAt, ...other } = user._doc
-
-        res.status(200).json(other)
-    } catch (error) {
-        res.status(500).json(error)
-    }
-}
-
 // tout les utilisateurs du systeme
 exports.getAllUser = async (req, res) => {
     try {
         const user = await User.find().select("-password")
-        // const { password, updatedAt, ...other } = user._doc
-        res.status(200).json(user)
-    }
-    catch (error) {
-        res.status(500).json(error)
-    }
-}
-
-// les utilisateurs connecter
-exports.getUsersOnline = async (req, res) => {
-    try {
-        const user = await User.find()
         // const { password, updatedAt, ...other } = user._doc
         res.status(200).json(user)
     }
@@ -147,51 +117,6 @@ exports.delete_user = async (req, res) => {
     }
 }
 
-// follow
-exports.follow = async (req, res) => {
-    if (req.body.userId != req.params.id) {
-        try {
-            const user = await User.findById(req.params.id)
-            const current = await User.findById(req.body.userId)
-
-            if (!user.follewers.includes(req.body.userId)) {
-                await user.updateOne({ $push: { follewers: req.body.userId } })
-                await current.updateOne({ $push: { follewing: req.params.id } })
-                res.status(200).json("follow has been passed")
-            } else {
-                res.status(401).json('you already follew this user')
-            }
-
-        } catch (error) {
-            res.status(500).json(error)
-        }
-    } else {
-        res.status(403).json("you cant follower yourself")
-    }
-}
-
-// unfollow
-exports.unfollow = async (req, res) => {
-    if (req.body.userId != req.params.id) {
-        try {
-            const user = await User.findById(req.params.id)
-            const current = await User.findById(req.body.userId)
-
-            if (user.follewers.includes(req.body.userId)) {
-                await user.updateOne({ $pull: { follewers: req.body.userId } })
-                await current.updateOne({ $pull: { follewing: req.params.id } })
-                res.status(200).json("unfollow has been passed")
-            } else {
-                res.status(401).json('you already unfollew this user')
-            }
-
-        } catch (error) {
-            res.status(500).json(error)
-        }
-    } else {
-        res.status(403).json("you cant unfollow yourself")
-    }
-}
 
 // deconnexion 
 exports.logout = (req, res) => {

@@ -26,8 +26,7 @@ app.use(helmet())
 
 app.use(cors());
 
-//pp.use("/*", verification.checkUser)
-// les routes
+
 app.use("/api/user", userRouter)
 app.use("/api/post", postRouter)
 app.use("/api/auth", authRouter)
