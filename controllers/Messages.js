@@ -19,7 +19,6 @@ exports.newMessage = async (req, res) => {
 }
 
 exports.readMessage = async (req, res) => {
-
     const sender = req.params.id
     try {
         const message = await messageModel.find({
