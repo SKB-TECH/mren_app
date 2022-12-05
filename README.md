@@ -3,7 +3,8 @@ small application for social media
 # Express Chat App
 #### This is a simple express chat application
 #### :camera: Screenshot:
-![React chat](https://i.imgur.com/P9PTZXl.png)
+
+
 #### :hammer_and_wrench: Tools:
 - Socket.io
 - Express.js
