@@ -47,5 +47,15 @@ dotenv.config()
           expect(res.statusCode).toBe(200);
           });
 
+          // create a new user
+          it('should return new user created', async () => {
+            const res= await request.post("/api/auth/register").send({
+              username:"Coach Abel",
+              email:"abel@gmail.com",
+              password:"abel2023"
+            });
+            expect(res.statusCode).toBe(200);
+            });
+
   });
   
